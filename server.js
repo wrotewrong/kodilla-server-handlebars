@@ -1,6 +1,8 @@
 const express = require('express');
 const path = require('path');
 const hbs = require('express-handlebars');
+const multer = require('multer');
+const upload = multer();
 
 const app = express();
 app.engine(
@@ -8,6 +10,9 @@ app.engine(
   hbs({ extname: 'hbs', layoutsDir: './layouts', defaultLayout: 'main' })
 );
 app.set('view engine', '.hbs');
+
+// app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
 // app.use((req, res, next) => {
 //   res.show = (name) => {
@@ -18,6 +23,19 @@ app.set('view engine', '.hbs');
 
 app.use(express.static(path.join(__dirname, '/public')));
 
+app.post('/contact/send-message', upload.single('img'), (req, res) => {
+  const { author, sender, title, message } = req.body;
+
+  if (author && sender && title && message && req.file) {
+    res.render('contact', {
+      isSent: true,
+      imgName: req.file.originalname,
+    });
+  } else {
+    res.render('contact', { isError: true });
+  }
+});
+
 app.get('/hello/:name', (req, res) => {
   res.render('hello', { name: req.params.name });
 });
@@ -27,7 +45,8 @@ app.get('/', (req, res) => {
 });
 
 app.get('/about', (req, res) => {
-  res.render('about', { layout: 'dark' });
+  res.render('about');
+  // res.render('about', { layout: 'dark' });
 });
 
 app.get('/contact', (req, res) => {
